@@ -1,0 +1,20 @@
+nasm -f bin boot.asm -o bootloader.bin
+nasm -f bin mrpv.asm -o mrpv.bin
+dd if=/dev/zero of=mi_sistema.img bs=512 count=2880
+dd if=bootloader.bin of=mi_sistema.img bs=512 count=1 conv=notrunc
+dd if=mrpv.bin of=mi_sistema.img bs=512 seek=1 conv=notrunc
+qemu-system-x86_64 -drive format=raw,file=mi_sistema.img
+
+sudo fdisk /dev/sda
+sudo mkfs.vfat -F32 /dev/sda1
+sudo dd if=/usr/lib/syslinux/mbr/mbr.bin of=/dev/sda bs=440 count=1
+sudo dd if=bootloader.bin of=/dev/sda1 bs=512 count=1
+sudo dd if=mrpv.bin of=/dev/sda1 bs=512 seek=1
+
+sudo dd if=/dev/sda1 bs=512 skip=1 | hexdump -C
+sudo mkfs.vfat -I -F32 /dev/sda
+sudo dd if=mi_sistema.img of=/dev/sda1 bs=512 conv=notrunc
+sudo qemu-system-x86_64 -drive format=raw,file=/dev/sda
+cat bootloader.bin mrpv.bin > mi_sistema.img
+
+

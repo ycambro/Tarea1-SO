@@ -1,0 +1,22 @@
+generar_cadena_aleatoria:
+    mov cx, 4                 ; Longitud de la cadena aleatoria
+    mov di, buffer_aleatorio   ; Apuntar al buffer donde guardaremos la cadena
+
+.loop_aleatorio:
+    ; Leer el contador de tiempo del PIT
+    mov al, 0                 ; Canal 0 del PIT
+    out 0x43, al              ; Enviar comando para leer el contador
+    in al, 0x40               ; Leer el byte menos significativo del contador
+    mov ah, 0                 ; Limpiar AH para obtener un valor de 16 bits en AX
+
+    ; Usar el valor del PIT como semilla para generar una letra aleatoria
+    mov dx, ax                ; Copiar el valor de AX en DX
+    and dx, 25                ; Limitar el valor entre 0 y 25 (26 letras en total)
+    add dl, 'A'               ; Convertir en letra (A = 65)
+
+    mov [di], dl              ; Guardar la letra en el buffer
+    inc di                    ; Mover el puntero al siguiente espacio
+    loop .loop_aleatorio      ; Repetir hasta completar la cadena
+
+    mov byte [di], 0          ; Terminar la cadena con un null ('\0')
+    ret
